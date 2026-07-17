@@ -1,0 +1,20 @@
+# Java / Maven / IntelliJ
+target/
+*.class
+.idea/
+*.iml
+HELP.md
+
+# Environment / secrets
+application-local.properties
+.env
+.env.local
+
+# Node / frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# OS junk
+.DS_Store
+Thumbs.db

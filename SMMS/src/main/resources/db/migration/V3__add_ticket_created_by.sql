@@ -1,0 +1,1 @@
+ALTER TABLE ticket ADD COLUMN created_by BIGINT REFERENCES app_user(id);
