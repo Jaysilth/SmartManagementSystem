@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
+import { getCurrentUser } from '../lib/auth';
 
 interface Ticket {
   id: number;
@@ -15,8 +16,12 @@ export default function Tickets() {
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
+  const currentUser = getCurrentUser();
+  const canManageUsers = currentUser?.role === 'ADMIN' || currentUser?.role === 'MANAGER';
+
   function loadTickets() {
-    api.get('/tickets')
+    api
+      .get('/tickets')
       .then((response) => setTickets(response.data))
       .catch(() => setError('Failed to load tickets'));
   }
@@ -28,6 +33,7 @@ export default function Tickets() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!newTitle.trim()) return;
+
     setSubmitting(true);
     try {
       await api.post('/tickets', { title: newTitle });
@@ -41,18 +47,29 @@ export default function Tickets() {
   }
 
   function handleLogout() {
-  localStorage.removeItem('token');
-  navigate('/login');
-}
+    localStorage.removeItem('token');
+    navigate('/login');
+  }
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-6">
       <div className="flex justify-between items-center mb-4">
-  <h1 className="text-2xl font-bold">Tickets</h1>
-  <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">
-    Log out
-  </button>
-</div>
+        <h1 className="text-2xl font-bold">Tickets</h1>
+
+        <div className="flex items-center gap-4">
+          {canManageUsers && (
+            <button
+              onClick={() => navigate('/create-user')}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              Create User
+            </button>
+          )}
+          <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">
+            Log out
+          </button>
+        </div>
+      </div>
 
       <form onSubmit={handleCreate} className="flex gap-2 mb-6">
         <input

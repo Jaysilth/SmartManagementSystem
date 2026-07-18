@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import Tickets from './pages/Tickets';
 import ProtectedRoute from './components/ProtectedRoute';
 import Register from './pages/Register';
+import CreateUser from './pages/CreateUser';
 
 function App() {
   return (
@@ -17,6 +18,14 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+  path="/create-user"
+  element={
+    <ProtectedRoute>
+      <CreateUser />
+    </ProtectedRoute>
+  }
+/>
         
 <Route path="/register" element={<Register />} />
         <Route path="*" element={<Navigate to="/login" />} />
