@@ -11,6 +11,12 @@ public class Ticket {
     private Long id;
     private String title;
 
+    @Column(nullable = false)
+    private String status = "OPEN";
+
+    @Column(name = "assigned_technician_id")
+    private Long assignedTechnicianId;
+
     @Column(name = "created_by")
     private Long createdBy;
 

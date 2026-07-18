@@ -1,0 +1,2 @@
+ALTER TABLE ticket ADD COLUMN status VARCHAR(30) NOT NULL DEFAULT 'OPEN';
+ALTER TABLE ticket ADD COLUMN assigned_technician_id BIGINT REFERENCES app_user(id);
