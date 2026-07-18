@@ -7,10 +7,20 @@ interface Ticket {
   id: number;
   organizationId: number;
   title: string;
+  status: string;
+  assignedTechnicianId: number | null;
+  createdBy: number | null;
+}
+
+interface UserOption {
+  id: number;
+  email: string;
+  role: string;
 }
 
 export default function Tickets() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [technicians, setTechnicians] = useState<UserOption[]>([]);
   const [error, setError] = useState('');
   const [newTitle, setNewTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -30,6 +40,15 @@ export default function Tickets() {
     loadTickets();
   }, []);
 
+  useEffect(() => {
+    if (canManageUsers) {
+      api
+        .get('/auth/users?role=TECHNICIAN')
+        .then((response) => setTechnicians(response.data))
+        .catch(() => {});
+    }
+  }, [canManageUsers]);
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!newTitle.trim()) return;
@@ -43,6 +62,15 @@ export default function Tickets() {
       setError('Failed to create ticket');
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleAssign(ticketId: number, technicianId: number) {
+    try {
+      await api.patch(`/tickets/${ticketId}/assign`, { technicianId });
+      loadTickets();
+    } catch {
+      setError('Failed to assign ticket');
     }
   }
 
@@ -93,7 +121,29 @@ export default function Tickets() {
       <ul className="space-y-2">
         {tickets.map((ticket) => (
           <li key={ticket.id} className="border rounded p-3 bg-white shadow-sm">
-            {ticket.title}
+            <div className="flex justify-between items-center">
+              <span>{ticket.title}</span>
+              <span className="text-xs font-mono text-gray-500">{ticket.status}</span>
+            </div>
+
+            {canManageUsers && (
+              <div className="mt-2">
+                <select
+                  value={ticket.assignedTechnicianId ?? ''}
+                  onChange={(e) => handleAssign(ticket.id, Number(e.target.value))}
+                  className="text-sm border rounded px-2 py-1"
+                >
+                  <option value="" disabled>
+                    Assign technician
+                  </option>
+                  {technicians.map((tech) => (
+                    <option key={tech.id} value={tech.id}>
+                      {tech.email}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </li>
         ))}
       </ul>
