@@ -18,3 +18,8 @@ frontend/.vite/
 # OS junk
 .DS_Store
 Thumbs.db
+
+*.json
+!package.json
+!package-lock.json
+!tsconfig*.json
