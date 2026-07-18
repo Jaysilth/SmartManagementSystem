@@ -2,6 +2,7 @@ package com.SmartManagementSystem.SMMS.controller;
 
 import com.SmartManagementSystem.SMMS.dto.AssignTicketRequest;
 import com.SmartManagementSystem.SMMS.dto.CreateTicketRequest;
+import com.SmartManagementSystem.SMMS.dto.UpdateStatusRequest;
 import com.SmartManagementSystem.SMMS.entity.Ticket;
 import com.SmartManagementSystem.SMMS.repository.TicketRepository;
 import com.SmartManagementSystem.SMMS.security.AuthenticatedUser;
@@ -61,6 +62,24 @@ public class TicketController {
         Ticket saved = ticketRepository.save(ticket);
         return ResponseEntity.ok(saved);
     }
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<Ticket> updateStatus(@PathVariable Long id,
+                                               @Valid @RequestBody UpdateStatusRequest request,
+                                               @AuthenticationPrincipal AuthenticatedUser user) {
+        Ticket ticket = ticketRepository.findByIdAndOrganizationId(id, user.organizationId())
+                .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
 
+        boolean isAssignedTechnician = "TECHNICIAN".equals(user.role())
+                && user.userId().equals(ticket.getAssignedTechnicianId());
+        boolean isManagerOrAdmin = "MANAGER".equals(user.role()) || "ADMIN".equals(user.role());
+
+        if (!isAssignedTechnician && !isManagerOrAdmin) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        ticket.setStatus(request.getStatus().toUpperCase());
+        Ticket saved = ticketRepository.save(ticket);
+        return ResponseEntity.ok(saved);
+    }
 
 }
