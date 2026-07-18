@@ -1,5 +1,6 @@
 package com.SmartManagementSystem.SMMS.service;
 
+import com.SmartManagementSystem.SMMS.dto.CreateUserRequest;
 import com.SmartManagementSystem.SMMS.dto.LoginRequest;
 import com.SmartManagementSystem.SMMS.dto.RegisterRequest;
 import com.SmartManagementSystem.SMMS.entity.AppUser;
@@ -42,7 +43,7 @@ public class AuthService {
         AppUser user = new AppUser();
         user.setEmail(request.getEmail());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setRole(request.getRole().toUpperCase());
+        user.setRole("ADMIN");
         user.setOrganizationId(org.getId());
         return appUserRepository.save(user);
     }
@@ -55,5 +56,16 @@ public class AuthService {
         }
 
         return jwtService.generateToken(user.getId(), user.getOrganizationId(), user.getRole());
+    }
+    public AppUser createUserInOrg(CreateUserRequest request, Long organizationId) {
+        if (appUserRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Email already registered");
+        }
+        AppUser user = new AppUser();
+        user.setEmail(request.getEmail());
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        user.setRole(request.getRole().toUpperCase());
+        user.setOrganizationId(organizationId);
+        return appUserRepository.save(user);
     }
 }
