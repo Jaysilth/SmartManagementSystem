@@ -73,14 +73,28 @@ public class TicketController {
         boolean isAssignedTechnician = "TECHNICIAN".equals(user.role())
                 && user.userId().equals(ticket.getAssignedTechnicianId());
         boolean isManagerOrAdmin = "MANAGER".equals(user.role()) || "ADMIN".equals(user.role());
+        boolean isOwningRequester = "REQUESTER".equals(user.role())
+                && user.userId().equals(ticket.getCreatedBy());
 
-        if (!isAssignedTechnician && !isManagerOrAdmin) {
+        String newStatus = request.getStatus().toUpperCase();
+
+        if (isOwningRequester) {
+            boolean validRequesterTransition =
+                    "CLOSED".equals(newStatus) ||
+                            "CANCELLED".equals(newStatus) ||
+                            ("REOPENED".equals(newStatus) && "COMPLETED".equals(ticket.getStatus()));
+            if (!validRequesterTransition) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        } else if (!isAssignedTechnician && !isManagerOrAdmin) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        ticket.setStatus(request.getStatus().toUpperCase());
+        ticket.setStatus(newStatus);
         Ticket saved = ticketRepository.save(ticket);
         return ResponseEntity.ok(saved);
     }
+
+
 
 }
