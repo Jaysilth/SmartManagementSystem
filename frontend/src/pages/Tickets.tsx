@@ -31,6 +31,7 @@ export default function Tickets() {
 
   const isTechnician = currentUser?.role === 'TECHNICIAN';
   const currentUserId = currentUser ? Number(currentUser.sub) : null;
+  const isRequester = currentUser?.role === 'REQUESTER';
 
   function loadTickets() {
     api
@@ -168,6 +169,34 @@ export default function Tickets() {
         {s.replace('_', ' ')}
       </button>
     ))}
+  </div>
+)}
+{isRequester && ticket.createdBy === currentUserId && (
+  <div className="mt-2 flex gap-2">
+    {ticket.status === 'COMPLETED' && (
+      <button
+        onClick={() => handleStatusChange(ticket.id, 'REOPENED')}
+        className="text-xs border rounded px-2 py-1 hover:bg-gray-100"
+      >
+        Reopen
+      </button>
+    )}
+    {!['CLOSED', 'CANCELLED'].includes(ticket.status) && (
+      <>
+        <button
+          onClick={() => handleStatusChange(ticket.id, 'CLOSED')}
+          className="text-xs border rounded px-2 py-1 hover:bg-gray-100"
+        >
+          Close
+        </button>
+        <button
+          onClick={() => handleStatusChange(ticket.id, 'CANCELLED')}
+          className="text-xs border rounded px-2 py-1 hover:bg-gray-100"
+        >
+          Cancel
+        </button>
+      </>
+    )}
   </div>
 )}
           </li>
