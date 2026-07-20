@@ -29,6 +29,9 @@ export default function Tickets() {
   const currentUser = getCurrentUser();
   const canManageUsers = currentUser?.role === 'ADMIN' || currentUser?.role === 'MANAGER';
 
+  const isTechnician = currentUser?.role === 'TECHNICIAN';
+  const currentUserId = currentUser ? Number(currentUser.sub) : null;
+
   function loadTickets() {
     api
       .get('/tickets')
@@ -73,6 +76,15 @@ export default function Tickets() {
       setError('Failed to assign ticket');
     }
   }
+
+  async function handleStatusChange(ticketId: number, status: string) {
+  try {
+    await api.patch(`/tickets/${ticketId}/status`, { status });
+    loadTickets();
+  } catch {
+    setError('Failed to update status');
+  }
+}
 
   function handleLogout() {
     localStorage.removeItem('token');
@@ -144,6 +156,20 @@ export default function Tickets() {
                 </select>
               </div>
             )}
+            {isTechnician && ticket.assignedTechnicianId === currentUserId && (
+  <div className="mt-2 flex gap-2">
+    {['ACCEPTED', 'IN_PROGRESS', 'WAITING_FOR_PARTS', 'COMPLETED'].map((s) => (
+      <button
+        key={s}
+        onClick={() => handleStatusChange(ticket.id, s)}
+        disabled={ticket.status === s}
+        className="text-xs border rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        {s.replace('_', ' ')}
+      </button>
+    ))}
+  </div>
+)}
           </li>
         ))}
       </ul>
