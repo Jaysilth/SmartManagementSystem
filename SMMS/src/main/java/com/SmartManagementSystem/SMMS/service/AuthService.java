@@ -7,6 +7,8 @@ import com.SmartManagementSystem.SMMS.entity.AppUser;
 import com.SmartManagementSystem.SMMS.entity.Organization;
 import com.SmartManagementSystem.SMMS.repository.AppUserRepository;
 import com.SmartManagementSystem.SMMS.repository.OrganizationRepository;
+import com.SmartManagementSystem.SMMS.exception.DuplicateResourceException;
+import com.SmartManagementSystem.SMMS.exception.InvalidCredentialsException;
 import com.SmartManagementSystem.SMMS.security.JwtService;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,8 +35,9 @@ public class AuthService {
     @Transactional
     public AppUser register(RegisterRequest request) {
         if (appUserRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Email already registered");
+            throw new DuplicateResourceException("Email already registered");
         }
+
 
         Organization org = new Organization();
         org.setName(request.getOrganizationName());
@@ -49,17 +52,17 @@ public class AuthService {
     }
     public String login(LoginRequest request) {
         AppUser user = appUserRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid credentials"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new IllegalArgumentException("Invalid credentials");
+            throw new InvalidCredentialsException("Invalid credentials");
         }
 
         return jwtService.generateToken(user.getId(), user.getOrganizationId(), user.getRole());
     }
     public AppUser createUserInOrg(CreateUserRequest request, Long organizationId) {
         if (appUserRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Email already registered");
+            throw new DuplicateResourceException("Email already registered");
         }
         AppUser user = new AppUser();
         user.setEmail(request.getEmail());

@@ -9,6 +9,7 @@ import com.SmartManagementSystem.SMMS.security.AuthenticatedUser;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import com.SmartManagementSystem.SMMS.exception.ResourceNotFoundException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,7 +56,7 @@ public class TicketController {
         }
 
         Ticket ticket = ticketRepository.findByIdAndOrganizationId(id, user.organizationId())
-                .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
 
         ticket.setAssignedTechnicianId(request.getTechnicianId());
         ticket.setStatus("ASSIGNED");
@@ -67,7 +68,7 @@ public class TicketController {
                                                @Valid @RequestBody UpdateStatusRequest request,
                                                @AuthenticationPrincipal AuthenticatedUser user) {
         Ticket ticket = ticketRepository.findByIdAndOrganizationId(id, user.organizationId())
-                .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
 
         boolean isAssignedTechnician = "TECHNICIAN".equals(user.role())
                 && user.userId().equals(ticket.getAssignedTechnicianId());
