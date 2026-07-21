@@ -106,6 +106,14 @@ export default function Tickets() {
               Create User
             </button>
           )}
+          {canManageUsers && (
+  <button
+    onClick={() => navigate('/manage-locations')}
+    className="text-sm text-blue-600 hover:underline"
+  >
+    Manage Locations
+  </button>
+)}
           <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">
             Log out
           </button>

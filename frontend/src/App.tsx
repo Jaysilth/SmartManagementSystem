@@ -4,6 +4,8 @@ import Tickets from './pages/Tickets';
 import ProtectedRoute from './components/ProtectedRoute';
 import Register from './pages/Register';
 import CreateUser from './pages/CreateUser';
+import ManageLocations from './pages/ManageLocations';
+
 
 function App() {
   return (
@@ -23,6 +25,15 @@ function App() {
   element={
     <ProtectedRoute>
       <CreateUser />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/manage-locations"
+  element={
+    <ProtectedRoute>
+      <ManageLocations />
     </ProtectedRoute>
   }
 />
