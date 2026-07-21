@@ -28,4 +28,11 @@ public class Ticket {
 
     @Column(name = "organization_id")
     private Long organizationId;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    private String category;
+
+    private String priority = "MEDIUM";
 }

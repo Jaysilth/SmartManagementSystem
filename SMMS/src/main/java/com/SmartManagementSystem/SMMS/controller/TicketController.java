@@ -63,6 +63,9 @@ public class TicketController {
         ticket.setCreatedBy(user.userId());
         ticket.setDepartmentId(request.getDepartmentId());
         ticket.setLocationId(request.getLocationId());
+        ticket.setDescription(request.getDescription());
+        ticket.setCategory(request.getCategory());
+        ticket.setPriority(request.getPriority() != null ? request.getPriority().toUpperCase() : "MEDIUM");
         Ticket saved = ticketRepository.save(ticket);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
