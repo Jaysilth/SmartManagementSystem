@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { LogOut, UserPlus, MapPin, Wrench, CircleCheck } from 'lucide-react';
 import api from '../lib/api';
 import { getCurrentUser } from '../lib/auth';
+import Badge from '../components/Badge';
 
 interface Ticket {
   id: number;
@@ -48,6 +50,12 @@ const CATEGORIES = [
 const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'];
 
 const TECHNICIAN_STATUS_OPTIONS = ['ACCEPTED', 'IN_PROGRESS', 'WAITING_FOR_PARTS', 'COMPLETED'];
+
+function priorityTone(priority: string): 'low' | 'medium' | 'high' | 'critical' | 'neutral' {
+  const p = priority?.toLowerCase();
+  if (p === 'low' || p === 'medium' || p === 'high' || p === 'critical') return p;
+  return 'neutral';
+}
 
 export default function Tickets() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -157,20 +165,26 @@ export default function Tickets() {
           {canManageUsers && (
             <button
               onClick={() => navigate('/create-user')}
-              className="text-sm text-blue-600 hover:underline"
+              className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
             >
+              <UserPlus size={16} />
               Create User
             </button>
           )}
           {canManageUsers && (
             <button
               onClick={() => navigate('/manage-locations')}
-              className="text-sm text-blue-600 hover:underline"
+              className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
             >
+              <MapPin size={16} />
               Manage Locations
             </button>
           )}
-          <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1 text-sm text-red-600 hover:underline"
+          >
+            <LogOut size={16} />
             Log out
           </button>
         </div>
@@ -265,14 +279,10 @@ export default function Tickets() {
               <span>{ticket.title}</span>
               <div className="flex gap-2 items-center">
                 {ticket.priority && (
-                  <span className="text-xs font-mono text-gray-500 uppercase">
-                    {ticket.priority}
-                  </span>
+                  <Badge tone={priorityTone(ticket.priority)}>{ticket.priority}</Badge>
                 )}
-                {ticket.category && (
-                  <span className="text-xs font-mono text-gray-400">{ticket.category}</span>
-                )}
-                <span className="text-xs font-mono text-gray-500">{ticket.status}</span>
+                {ticket.category && <Badge>{ticket.category}</Badge>}
+                <Badge>{ticket.status}</Badge>
               </div>
             </div>
 
@@ -281,7 +291,8 @@ export default function Tickets() {
             )}
 
             {canManageUsers && (
-              <div className="mt-2">
+              <div className="mt-2 flex items-center gap-2">
+                <Wrench size={14} className="text-gray-400" />
                 <select
                   value={ticket.assignedTechnicianId ?? ''}
                   onChange={(e) => handleAssign(ticket.id, Number(e.target.value))}
@@ -300,14 +311,15 @@ export default function Tickets() {
             )}
 
             {isTechnician && ticket.assignedTechnicianId === currentUserId && (
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex gap-2 flex-wrap">
                 {TECHNICIAN_STATUS_OPTIONS.map((s) => (
                   <button
                     key={s}
                     onClick={() => handleStatusChange(ticket.id, s)}
                     disabled={ticket.status === s}
-                    className="text-xs border rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1 text-xs border rounded px-2 py-1 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
+                    <CircleCheck size={12} />
                     {s.replace('_', ' ')}
                   </button>
                 ))}

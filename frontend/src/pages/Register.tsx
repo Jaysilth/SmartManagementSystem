@@ -25,42 +25,77 @@ export default function Register() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-80">
-        <h1 className="text-2xl font-bold mb-4">Create Organization</h1>
-        {error && <p className="text-red-600 mb-3 text-sm">{error}</p>}
-        <input
-          type="text"
-          placeholder="Organization name"
-          value={organizationName}
-          onChange={(e) => setOrganizationName(e.target.value)}
-          className="w-full border rounded px-3 py-2 mb-3"
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border rounded px-3 py-2 mb-3"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border rounded px-3 py-2 mb-4"
-        />
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+    <div className="flex items-center justify-center min-h-screen bg-[#fafafa]">
+      <div className="w-80">
+        <p
+          className="text-center text-xs uppercase tracking-widest text-slate-400 mb-3"
+          style={{ fontFamily: "'JetBrains Mono', monospace" }}
         >
-          {submitting ? 'Creating...' : 'Create Account'}
-        </button>
-        <p className="text-sm text-center mt-3">
-          Already have an account? <Link to="/login" className="text-blue-600">Log in</Link>
+          SMMS
         </p>
-      </form>
+
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white border-2 border-slate-800 rounded-lg p-8 shadow-[6px_6px_0px_0px_rgba(30,41,59,1)]"
+        >
+          <h1 className="text-2xl font-semibold text-slate-800 mb-1">Create organization</h1>
+          <p className="text-sm text-slate-500 mb-6">Set up your workspace to get started</p>
+
+          {error && (
+            <p className="text-red-600 mb-4 text-sm border border-red-200 bg-red-50 rounded px-3 py-2">
+              {error}
+            </p>
+          )}
+
+          <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">
+            Organization name
+          </label>
+          <input
+            type="text"
+            placeholder="Acme Corp"
+            value={organizationName}
+            onChange={(e) => setOrganizationName(e.target.value)}
+            className="w-full border-2 border-slate-800 rounded px-3 py-2 mb-4 focus:outline-none focus:border-blue-600"
+          />
+
+          <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">
+            Email
+          </label>
+          <input
+            type="email"
+            placeholder="you@company.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border-2 border-slate-800 rounded px-3 py-2 mb-4 focus:outline-none focus:border-blue-600"
+          />
+
+          <label className="block text-xs uppercase tracking-wide text-slate-500 mb-1">
+            Password
+          </label>
+          <input
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border-2 border-slate-800 rounded px-3 py-2 mb-6 focus:outline-none focus:border-blue-600"
+          />
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full bg-slate-800 text-white font-semibold py-2 rounded border-2 border-slate-800 shadow-[3px_3px_0px_0px_rgba(30,41,59,1)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0px_0px_rgba(30,41,59,1)] transition-transform disabled:opacity-50"
+          >
+            {submitting ? 'Creating...' : 'Create account'}
+          </button>
+
+          <p className="text-sm text-center mt-4 text-slate-500">
+            Already have an account?{' '}
+            <Link to="/login" className="text-blue-600 hover:underline">
+              Log in
+            </Link>
+          </p>
+        </form>
+      </div>
     </div>
   );
 }
