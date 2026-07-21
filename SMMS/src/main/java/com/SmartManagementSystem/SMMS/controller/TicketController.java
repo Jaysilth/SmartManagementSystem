@@ -4,6 +4,8 @@ import com.SmartManagementSystem.SMMS.dto.AssignTicketRequest;
 import com.SmartManagementSystem.SMMS.dto.CreateTicketRequest;
 import com.SmartManagementSystem.SMMS.dto.UpdateStatusRequest;
 import com.SmartManagementSystem.SMMS.entity.Ticket;
+import com.SmartManagementSystem.SMMS.repository.DepartmentRepository;
+import com.SmartManagementSystem.SMMS.repository.LocationRepository;
 import com.SmartManagementSystem.SMMS.repository.TicketRepository;
 import com.SmartManagementSystem.SMMS.security.AuthenticatedUser;
 import jakarta.validation.Valid;
@@ -20,9 +22,15 @@ import java.util.List;
 public class TicketController {
 
     private final TicketRepository ticketRepository;
+    private final DepartmentRepository departmentRepository;
+    private final LocationRepository locationRepository;
 
-    public TicketController(TicketRepository ticketRepository) {
+    public TicketController(TicketRepository ticketRepository,
+                            DepartmentRepository departmentRepository,
+                            LocationRepository locationRepository) {
         this.ticketRepository = ticketRepository;
+        this.departmentRepository = departmentRepository;
+        this.locationRepository = locationRepository;
     }
 
     @GetMapping
@@ -39,10 +47,22 @@ public class TicketController {
         if ("TECHNICIAN".equals(user.role())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+
+        if (request.getDepartmentId() != null) {
+            departmentRepository.findByIdAndOrganizationId(request.getDepartmentId(), user.organizationId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Department not found"));
+        }
+        if (request.getLocationId() != null) {
+            locationRepository.findByIdAndOrganizationId(request.getLocationId(), user.organizationId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Location not found"));
+        }
+
         Ticket ticket = new Ticket();
         ticket.setTitle(request.getTitle());
         ticket.setOrganizationId(user.organizationId());
         ticket.setCreatedBy(user.userId());
+        ticket.setDepartmentId(request.getDepartmentId());
+        ticket.setLocationId(request.getLocationId());
         Ticket saved = ticketRepository.save(ticket);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }

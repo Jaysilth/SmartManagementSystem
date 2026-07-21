@@ -7,4 +7,7 @@ import lombok.Data;
 public class CreateTicketRequest {
     @NotBlank
     private String title;
+
+    private Long departmentId;
+    private Long locationId;
 }
