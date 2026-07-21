@@ -18,12 +18,26 @@ interface UserOption {
   role: string;
 }
 
+interface Department {
+  id: number;
+  name: string;
+}
+
+interface LocationOption {
+  id: number;
+  name: string;
+}
+
 export default function Tickets() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [technicians, setTechnicians] = useState<UserOption[]>([]);
   const [error, setError] = useState('');
   const [newTitle, setNewTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [locations, setLocations] = useState<LocationOption[]>([]);
+  const [selectedDept, setSelectedDept] = useState('');
+  const [selectedLoc, setSelectedLoc] = useState('');
   const navigate = useNavigate();
 
   const currentUser = getCurrentUser();
@@ -32,6 +46,8 @@ export default function Tickets() {
   const isTechnician = currentUser?.role === 'TECHNICIAN';
   const currentUserId = currentUser ? Number(currentUser.sub) : null;
   const isRequester = currentUser?.role === 'REQUESTER';
+
+  
 
   function loadTickets() {
     api
@@ -45,6 +61,11 @@ export default function Tickets() {
   }, []);
 
   useEffect(() => {
+  api.get('/departments').then((res) => setDepartments(res.data)).catch(() => {});
+  api.get('/locations').then((res) => setLocations(res.data)).catch(() => {});
+}, []);
+
+  useEffect(() => {
     if (canManageUsers) {
       api
         .get('/auth/users?role=TECHNICIAN')
@@ -54,20 +75,26 @@ export default function Tickets() {
   }, [canManageUsers]);
 
   async function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newTitle.trim()) return;
+  e.preventDefault();
+  if (!newTitle.trim()) return;
 
-    setSubmitting(true);
-    try {
-      await api.post('/tickets', { title: newTitle });
-      setNewTitle('');
-      loadTickets();
-    } catch {
-      setError('Failed to create ticket');
-    } finally {
-      setSubmitting(false);
-    }
+  setSubmitting(true);
+  try {
+    await api.post('/tickets', {
+      title: newTitle,
+      departmentId: selectedDept ? Number(selectedDept) : null,
+      locationId: selectedLoc ? Number(selectedLoc) : null,
+    });
+    setNewTitle('');
+    setSelectedDept('');
+    setSelectedLoc('');
+    loadTickets();
+  } catch {
+    setError('Failed to create ticket');
+  } finally {
+    setSubmitting(false);
   }
+}
 
   async function handleAssign(ticketId: number, technicianId: number) {
     try {
@@ -120,22 +147,50 @@ export default function Tickets() {
         </div>
       </div>
 
-      <form onSubmit={handleCreate} className="flex gap-2 mb-6">
-        <input
-          type="text"
-          placeholder="New ticket title"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          className="flex-1 border rounded px-3 py-2"
-        />
-        <button
-          type="submit"
-          disabled={submitting}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-        >
-          {submitting ? 'Adding...' : 'Add'}
-        </button>
-      </form>
+      <form onSubmit={handleCreate} className="space-y-2 mb-6">
+  <div className="flex gap-2">
+    <input
+      type="text"
+      placeholder="New ticket title"
+      value={newTitle}
+      onChange={(e) => setNewTitle(e.target.value)}
+      className="flex-1 border rounded px-3 py-2"
+    />
+    <button
+      type="submit"
+      disabled={submitting}
+      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+    >
+      {submitting ? 'Adding...' : 'Add'}
+    </button>
+  </div>
+  <div className="flex gap-2">
+    <select
+      value={selectedDept}
+      onChange={(e) => setSelectedDept(e.target.value)}
+      className="flex-1 border rounded px-2 py-1 text-sm"
+    >
+      <option value="">No department</option>
+      {departments.map((d) => (
+        <option key={d.id} value={d.id}>
+          {d.name}
+        </option>
+      ))}
+    </select>
+    <select
+      value={selectedLoc}
+      onChange={(e) => setSelectedLoc(e.target.value)}
+      className="flex-1 border rounded px-2 py-1 text-sm"
+    >
+      <option value="">No location</option>
+      {locations.map((l) => (
+        <option key={l.id} value={l.id}>
+          {l.name}
+        </option>
+      ))}
+    </select>
+  </div>
+</form>
 
       {error && <p className="text-red-600 mb-3">{error}</p>}
 
