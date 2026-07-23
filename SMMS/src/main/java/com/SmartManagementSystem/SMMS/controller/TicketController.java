@@ -34,11 +34,13 @@ public class TicketController {
     }
 
     @GetMapping
-    public List<Ticket> getTickets(@AuthenticationPrincipal AuthenticatedUser user) {
-        if ("REQUESTER".equals(user.role())) {
-            return ticketRepository.findByOrganizationIdAndCreatedBy(user.organizationId(), user.userId());
-        }
-        return ticketRepository.findByOrganizationId(user.organizationId());
+    public List<Ticket> getTickets(@RequestParam(required = false) String status,
+                                   @RequestParam(required = false) String priority,
+                                   @RequestParam(required = false) String category,
+                                   @RequestParam(required = false) String search,
+                                   @AuthenticationPrincipal AuthenticatedUser user) {
+        Long createdBy = "REQUESTER".equals(user.role()) ? user.userId() : null;
+        return ticketRepository.search(user.organizationId(), createdBy, status, priority, category, search);
     }
 
     @PostMapping
