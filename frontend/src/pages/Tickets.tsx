@@ -72,6 +72,11 @@ export default function Tickets() {
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedLoc, setSelectedLoc] = useState('');
 
+  const [filterSearch, setFilterSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterPriority, setFilterPriority] = useState('');
+  const [filterCategory, setFilterCategory] = useState('');
+
   const navigate = useNavigate();
 
   const currentUser = getCurrentUser();
@@ -81,15 +86,23 @@ export default function Tickets() {
   const isRequester = currentUser?.role === 'REQUESTER';
 
   function loadTickets() {
-    api
-      .get('/tickets')
-      .then((response) => setTickets(response.data))
-      .catch(() => setError('Failed to load tickets'));
-  }
+  const params: Record<string, string> = {};
+  if (filterSearch) params.search = filterSearch;
+  if (filterStatus) params.status = filterStatus;
+  if (filterPriority) params.priority = filterPriority;
+  if (filterCategory) params.category = filterCategory;
+
+  api
+    .get('/tickets', { params })
+    .then((response) => setTickets(response.data))
+    .catch(() => setError('Failed to load tickets'));
+}
 
   useEffect(() => {
-    loadTickets();
-  }, []);
+  loadTickets();
+}, [filterSearch, filterStatus, filterPriority, filterCategory]);
+
+
 
   useEffect(() => {
     api.get('/departments').then((res) => setDepartments(res.data)).catch(() => {});
@@ -189,6 +202,52 @@ export default function Tickets() {
           </button>
         </div>
       </div>
+
+      <div className="flex gap-2 mb-4">
+  <input
+    type="text"
+    placeholder="Search title..."
+    value={filterSearch}
+    onChange={(e) => setFilterSearch(e.target.value)}
+    className="flex-1 border rounded px-2 py-1 text-sm"
+  />
+  <select
+    value={filterStatus}
+    onChange={(e) => setFilterStatus(e.target.value)}
+    className="border rounded px-2 py-1 text-sm"
+  >
+    <option value="">All statuses</option>
+    {['OPEN', 'ASSIGNED', 'ACCEPTED', 'IN_PROGRESS', 'WAITING_FOR_PARTS', 'COMPLETED', 'CLOSED', 'CANCELLED', 'REOPENED'].map((s) => (
+      <option key={s} value={s}>
+        {s.replace('_', ' ')}
+      </option>
+    ))}
+  </select>
+  <select
+    value={filterPriority}
+    onChange={(e) => setFilterPriority(e.target.value)}
+    className="border rounded px-2 py-1 text-sm"
+  >
+    <option value="">All priorities</option>
+    {PRIORITIES.map((p) => (
+      <option key={p} value={p}>
+        {p.charAt(0) + p.slice(1).toLowerCase()}
+      </option>
+    ))}
+  </select>
+  <select
+    value={filterCategory}
+    onChange={(e) => setFilterCategory(e.target.value)}
+    className="border rounded px-2 py-1 text-sm"
+  >
+    <option value="">All categories</option>
+    {CATEGORIES.map((c) => (
+      <option key={c} value={c.toUpperCase()}>
+        {c}
+      </option>
+    ))}
+  </select>
+</div>
 
       <form onSubmit={handleCreate} className="space-y-2 mb-6">
         <div className="flex gap-2">
