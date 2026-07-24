@@ -15,6 +15,12 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
     List<Ticket> findByOrganizationIdAndCreatedBy(Long organizationId, Long createdBy);
     Optional<Ticket> findByIdAndOrganizationId(Long id, Long organizationId);
 
+    @Query("SELECT t.status, COUNT(t) FROM Ticket t WHERE t.organizationId = :orgId GROUP BY t.status")
+    List<Object[]> countByStatus(@Param("orgId") Long orgId);
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.organizationId = :orgId AND t.status = 'OPEN'")
+    long countOpen(@Param("orgId") Long orgId);
+
     @Query("SELECT t FROM Ticket t WHERE t.organizationId = :orgId " +
             "AND (:createdBy IS NULL OR t.createdBy = :createdBy) " +
             "AND (:status IS NULL OR t.status = :status) " +
