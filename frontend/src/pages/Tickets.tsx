@@ -35,6 +35,13 @@ interface LocationOption {
   name: string;
 }
 
+interface NoteOrComment {
+  id: number;
+  authorId: number;
+  content: string;
+  createdAt: string;
+}
+
 const CATEGORIES = [
   'Electrical',
   'Plumbing',
@@ -77,6 +84,15 @@ export default function Tickets() {
   const [filterPriority, setFilterPriority] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
 
+  
+  const [expandedTicketId, setExpandedTicketId] = useState<number | null>(null);
+  const [workNotes, setWorkNotes] = useState<NoteOrComment[]>([]);
+  const [comments, setComments] = useState<NoteOrComment[]>([]);
+  const [newNote, setNewNote] = useState('');
+  const [newComment, setNewComment] = useState('');
+
+
+
   const navigate = useNavigate();
 
   const currentUser = getCurrentUser();
@@ -84,6 +100,7 @@ export default function Tickets() {
   const canManageUsers = currentUser?.role === 'ADMIN' || currentUser?.role === 'MANAGER';
   const isTechnician = currentUser?.role === 'TECHNICIAN';
   const isRequester = currentUser?.role === 'REQUESTER';
+  const canSeeWorkNotes = currentUser?.role !== 'REQUESTER';
 
   function loadTickets() {
   const params: Record<string, string> = {};
@@ -117,6 +134,21 @@ export default function Tickets() {
         .catch(() => {});
     }
   }, [canManageUsers]);
+
+  function toggleExpand(ticketId: number) {
+  if (expandedTicketId === ticketId) {
+    setExpandedTicketId(null);
+    return;
+  }
+  setExpandedTicketId(ticketId);
+  setWorkNotes([]);
+  setComments([]);
+
+  if (canSeeWorkNotes) {
+    api.get(`/tickets/${ticketId}/work-notes`).then((res) => setWorkNotes(res.data)).catch(() => {});
+  }
+  api.get(`/tickets/${ticketId}/comments`).then((res) => setComments(res.data)).catch(() => {});
+}
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -164,10 +196,36 @@ export default function Tickets() {
     }
   }
 
+  async function handlePostNote(ticketId: number) {
+  if (!newNote.trim()) return;
+  try {
+    await api.post(`/tickets/${ticketId}/work-notes`, { content: newNote });
+    setNewNote('');
+    const res = await api.get(`/tickets/${ticketId}/work-notes`);
+    setWorkNotes(res.data);
+  } catch {
+    setError('Failed to add work note');
+  }
+}
+
+async function handlePostComment(ticketId: number) {
+  if (!newComment.trim()) return;
+  try {
+    await api.post(`/tickets/${ticketId}/comments`, { content: newComment });
+    setNewComment('');
+    const res = await api.get(`/tickets/${ticketId}/comments`);
+    setComments(res.data);
+  } catch {
+    setError('Failed to add comment');
+  }
+}
+
   function handleLogout() {
     localStorage.removeItem('token');
     navigate('/login');
   }
+
+  
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-6">
@@ -348,6 +406,71 @@ export default function Tickets() {
             {ticket.description && (
               <p className="text-sm text-gray-600 mt-1">{ticket.description}</p>
             )}
+
+            <button
+  onClick={() => toggleExpand(ticket.id)}
+  className="text-xs text-blue-600 hover:underline mt-1"
+>
+  {expandedTicketId === ticket.id ? 'Hide details' : 'Show details'}
+</button>
+
+{expandedTicketId === ticket.id && (
+  <div className="mt-2 border-t pt-2 space-y-3">
+    <div>
+      <h3 className="text-xs uppercase tracking-wide text-slate-500 mb-1">Comments</h3>
+      <ul className="space-y-1 mb-2">
+        {comments.map((c) => (
+          <li key={c.id} className="text-sm bg-slate-50 rounded px-2 py-1">
+            {c.content}
+          </li>
+        ))}
+      </ul>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          placeholder="Add a comment"
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          className="flex-1 border rounded px-2 py-1 text-sm"
+        />
+        <button
+          onClick={() => handlePostComment(ticket.id)}
+          className="text-sm bg-slate-800 text-white px-3 py-1 rounded"
+        >
+          Post
+        </button>
+      </div>
+    </div>
+
+    {canSeeWorkNotes && (
+      <div>
+        <h3 className="text-xs uppercase tracking-wide text-slate-500 mb-1">Work Notes</h3>
+        <ul className="space-y-1 mb-2">
+          {workNotes.map((n) => (
+            <li key={n.id} className="text-sm bg-amber-50 rounded px-2 py-1">
+              {n.content}
+            </li>
+          ))}
+        </ul>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Add a work note"
+            value={newNote}
+            onChange={(e) => setNewNote(e.target.value)}
+            className="flex-1 border rounded px-2 py-1 text-sm"
+          />
+          <button
+            onClick={() => handlePostNote(ticket.id)}
+            className="text-sm bg-slate-800 text-white px-3 py-1 rounded"
+          >
+            Post
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+)}
 
             {canManageUsers && (
               <div className="mt-2 flex items-center gap-2">
