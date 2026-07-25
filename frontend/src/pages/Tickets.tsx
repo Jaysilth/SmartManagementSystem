@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, UserPlus, MapPin, Wrench, CircleCheck } from 'lucide-react';
+import { LogOut, UserPlus, MapPin, Wrench, CircleCheck, LayoutDashboard } from 'lucide-react';
 import api from '../lib/api';
 import { getCurrentUser } from '../lib/auth';
 import Badge from '../components/Badge';
@@ -242,6 +242,15 @@ async function handlePostComment(ticketId: number) {
               Create User
             </button>
           )}
+          {canManageUsers && (
+  <button
+    onClick={() => navigate('/dashboard')}
+    className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
+  >
+    <LayoutDashboard size={16} />
+    Dashboard
+  </button>
+)}
           {canManageUsers && (
             <button
               onClick={() => navigate('/manage-locations')}

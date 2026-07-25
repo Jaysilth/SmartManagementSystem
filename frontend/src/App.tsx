@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Register from './pages/Register';
 import CreateUser from './pages/CreateUser';
 import ManageLocations from './pages/ManageLocations';
+import Dashboard from './pages/Dashboard';
 
 
 function App() {
@@ -34,6 +35,15 @@ function App() {
   element={
     <ProtectedRoute>
       <ManageLocations />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/dashboard"
+  element={
+    <ProtectedRoute>
+      <Dashboard />
     </ProtectedRoute>
   }
 />
