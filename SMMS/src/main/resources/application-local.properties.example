@@ -1,0 +1,12 @@
+# Copy this file to: SMMS/src/main/resources/application-local.properties
+# (already gitignored — the real file with real secrets never gets committed)
+
+# JWT signing secret — generate a random 256-bit (32+ char) string, never reuse this placeholder.
+# One way to generate one (PowerShell):
+#   -join ((48..57)+(65..90)+(97..122) | Get-Random -Count 48 | %{[char]$_})
+jwt.secret=REPLACE_WITH_A_LONG_RANDOM_SECRET
+
+# Database connection — matches the Postgres container started via docker-compose (see README)
+spring.datasource.url=jdbc:postgresql://localhost:5433/apex
+spring.datasource.username=postgres
+spring.datasource.password=*******
