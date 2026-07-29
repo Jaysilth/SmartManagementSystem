@@ -18,19 +18,21 @@ A multi-tenant maintenance ticketing system with role-based access control (Admi
 
 ### 1. Database
 
-Create a named Docker volume first, so your data survives container deletion, Docker reinstalls, or crashes — **do not skip this step**, it's the difference between recoverable and permanently lost data:
+A `docker-compose.yml` is provided at the repo root, already configured with a persistent named volume — your data survives container deletion, restarts, and even a Docker reinstall (see Known Limitations below for why this matters).
+
+Start it:
 
 ```powershell
-docker volume create apex-db-data
+docker-compose up -d
 ```
 
-Then start Postgres, mounting that volume (host port 5433, to avoid clashing with any local Postgres install on the default 5432):
+To stop it later without losing data:
 
 ```powershell
-docker run --name apex-db -e POSTGRES_PASSWORD=devpass -e POSTGRES_DB=apex -p 5433:5432 -v apex-db-data:/var/lib/postgresql/data -d postgres:16
+docker-compose down
 ```
 
-If you ever need to recreate the container (e.g. after a Docker reinstall), re-run the same command with the same `-v apex-db-data:...` flag — Docker will find and reattach the existing volume, and all data will still be there. Only running `docker volume rm apex-db-data` deliberately destroys the data.
+**Never run `docker-compose down -v`** unless you deliberately want to destroy all data — the `-v` flag also removes the named volume.
 
 ### 2. Backend secrets
 
@@ -70,9 +72,9 @@ Visit `http://localhost:5173/register` and sign up — this creates a new organi
 
 - Frontend API base URL is hardcoded in `frontend/src/lib/api.ts`, not read from an environment variable — deploying anywhere other than `localhost:8080` currently requires editing source code.
 - No automated test suite yet.
-- No Docker Compose file yet — backend and frontend are each run manually as described above.
+- `docker-compose.yml` currently covers Postgres only — the Spring Boot backend and the frontend are still run manually as described above. Full-stack containerization is deliberately deferred until actual deployment is on the table; it would slow down the active dev/debug loop today for no present benefit.
 - File attachments, real-time (WebSocket) updates, and audit logging are not implemented.
-- **Real incident, worth remembering:** an earlier version of this project ran Postgres in Docker *without* a named volume. A Docker reinstall wiped the container and all its data permanently — every test org, user, ticket, note, and comment gone, though the schema itself was trivially rebuilt via Flyway. The setup instructions above now include the volume from the start; don't remove it.
+- **Real incident, worth remembering:** an earlier version of this project ran Postgres in Docker *without* a named volume (before `docker-compose.yml` existed). A Docker reinstall wiped the container and all its data permanently — every test org, user, ticket, note, and comment gone, though the schema itself was trivially rebuilt via Flyway. The current `docker-compose.yml` includes the volume from the start; don't remove it from the compose file, and never run `docker-compose down -v`.
 
 ## Full project status
 

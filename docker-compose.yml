@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: apex-db
+    environment:
+      POSTGRES_PASSWORD: devpass
+      POSTGRES_DB: apex
+    ports:
+      - "5433:5432"
+    volumes:
+      - apex-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  apex-db-data:
+    name: apex-db-data
+    # Named, persistent volume — survives `docker-compose down`, container deletion,
+    # and even a Docker reinstall. Only `docker-compose down -v` or `docker volume rm`
+    # will destroy this data. Do not remove this without meaning to.
+    # `name:` pins the literal volume name — without it, Compose silently prefixes
+    # the name with the project folder (e.g. "smms_apex-db-data"), which can create
+    # a second, different volume instead of reusing an existing one of the same name.
