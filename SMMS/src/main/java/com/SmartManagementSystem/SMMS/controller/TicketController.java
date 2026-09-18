@@ -3,7 +3,9 @@ package com.SmartManagementSystem.SMMS.controller;
 import com.SmartManagementSystem.SMMS.dto.AssignTicketRequest;
 import com.SmartManagementSystem.SMMS.dto.CreateTicketRequest;
 import com.SmartManagementSystem.SMMS.dto.UpdateStatusRequest;
+import com.SmartManagementSystem.SMMS.entity.AppUser;
 import com.SmartManagementSystem.SMMS.entity.Ticket;
+import com.SmartManagementSystem.SMMS.repository.AppUserRepository;
 import com.SmartManagementSystem.SMMS.repository.DepartmentRepository;
 import com.SmartManagementSystem.SMMS.repository.LocationRepository;
 import com.SmartManagementSystem.SMMS.repository.TicketRepository;
@@ -24,13 +26,16 @@ public class TicketController {
     private final TicketRepository ticketRepository;
     private final DepartmentRepository departmentRepository;
     private final LocationRepository locationRepository;
+    private final AppUserRepository appUserRepository;
 
     public TicketController(TicketRepository ticketRepository,
                             DepartmentRepository departmentRepository,
-                            LocationRepository locationRepository) {
+                            LocationRepository locationRepository,
+                            AppUserRepository appUserRepository) {
         this.ticketRepository = ticketRepository;
         this.departmentRepository = departmentRepository;
         this.locationRepository = locationRepository;
+        this.appUserRepository = appUserRepository;
     }
 
     @GetMapping
@@ -82,6 +87,16 @@ public class TicketController {
 
         Ticket ticket = ticketRepository.findByIdAndOrganizationId(id, user.organizationId())
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
+
+        // Fix: previously technicianId was written straight to the ticket with no
+        // lookup at all, so an Admin/Manager could assign a ticket to any user ID
+        // in the database -- including a Requester, or a user in a different org.
+        AppUser technician = appUserRepository.findByIdAndOrganizationId(request.getTechnicianId(), user.organizationId())
+                .orElseThrow(() -> new ResourceNotFoundException("Technician not found"));
+
+        if (!"TECHNICIAN".equals(technician.getRole())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
 
         ticket.setAssignedTechnicianId(request.getTechnicianId());
         ticket.setStatus("ASSIGNED");
